@@ -4,7 +4,10 @@ import pointer.set.actions.Changer;
 import pointer.set.actions.Search;
 import pointer.set.components.TireType;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Scanner;
 
 public class CarManager {
 
@@ -119,12 +122,12 @@ public class CarManager {
         return search.getIndexes();
     }
 
-    public List<? extends Car> doSearch(String value){
+    public List<? extends Car> doSearch(String value) {
         try {
             return search.find(BodyType.fromString(value));
         } catch (IllegalArgumentException bex) {
             try {
-            return doSearch(Color.fromString(value));
+                return doSearch(Color.fromString(value));
             } catch (IllegalArgumentException cex) {
                 throw new IllegalArgumentException(bex.getMessage() + "\nOR " + cex.getMessage(), bex);
             }
