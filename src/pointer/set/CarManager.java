@@ -1,27 +1,19 @@
 package pointer.set;
 
 import pointer.set.actions.Changer;
-import pointer.set.actions.Deleter;
 import pointer.set.actions.Search;
 import pointer.set.components.TireType;
 
-import java.util.Arrays;
-import java.util.LinkedHashSet;
+import java.util.*;
 
 public class CarManager {
 
-    private static final String WITH = "with";
-    private static final String WITHOUT = "without";
-
+    Changer changer = new Changer();
     private LinkedHashSet<Car> cars = new LinkedHashSet<>();
     private Search search = new Search();
-    private Changer changer = new Changer();
-    private Deleter remover = new Deleter();
 
     CarManager() {
         search.setCars(cars);
-        changer.setCars(cars);
-        remover.setCars(cars);
     }
 
     public void setSearch(Search search) {
@@ -29,18 +21,7 @@ public class CarManager {
         this.search.setCars(cars);
     }
 
-    public void setChanger(Changer changer) {
-        this.changer = changer;
-        this.changer.setCars(cars);
-    }
-
-    public void setRemover(Deleter remover) {
-        this.remover = remover;
-        this.remover.setCars(cars);
-    }
-
     void help() {
-
         String stringBuilder = "Type 'add car brand, color, type and wheel diameter.\n" + "Colors: " + Arrays.toString(Color.values()) + "\n" +
                 "Car types: " + Arrays.toString(BodyType.values()) + "\n" +
                 "Type 'show' without parameters OR with body type OR color OR diameter OR diameter and color\n" +
@@ -55,9 +36,7 @@ public class CarManager {
         System.out.println(stringBuilder);
     }
 
-    void addCarToList(String[] params) {
-        Car car = changer.buildNewCar(params[0], params[1], params[2], params[3]);
-
+    void addCarToList(Car car) {
         if (car == null) {
             return;
         }
@@ -66,148 +45,117 @@ public class CarManager {
         cars.add(car);
     }
 
-    void doSearch(String[] params) throws NumberFormatException {
-        switch (params.length) {
-            case 0:
-                System.out.println(cars);
-                break;
-            case 1:
-                searchByOneParameter(params[0]);
-                break;
-            case 2:
-                searchByTwoParameters(params[0], params[1]);
-                break;
-            case 3:
-                searchByTreeParameters(params[0], params[1], params[2]);
-                break;
-            default:
-                System.out.println("Wrong parameters count.");
-                break;
+    LinkedHashSet<? extends Car> doSearch() {
+        return cars;
+    }
+
+    void makeDoubleWheelsDiameter(boolean steeringWheelHasButtons) {
+        changer.setSteeringWheelHasButtons(steeringWheelHasButtons);
+
+        cars.iterator().forEachRemaining(c -> changer.makeDoubleWheelsDiameter(c));
+    }
+
+    void changeSteeringWheel(Color color, float diameter, boolean steeringWheelHasButtons) {
+        changer.setColor(color);
+        changer.setDiameter(diameter);
+        changer.setSteeringWheelHasButtons(steeringWheelHasButtons);
+
+        cars.iterator().forEachRemaining(c -> changer.changeSteeringWheel(c));
+    }
+
+    void changeTireType(Color color, float diameter, TireType tireType) {
+        System.out.println("Changing tire type to " + tireType);
+
+        changer.setColor(color);
+        changer.setDiameter(diameter);
+        changer.setTireType(tireType);
+
+        cars.iterator().forEachRemaining(c -> changer.changeTireType(c));
+    }
+
+    public void changeCarsWithSmallDiameter(float diameter, Scanner scanner) {
+        changer.setDiameter(diameter);
+        changer.setScanner(scanner);
+        changer.setCars(cars);
+
+        cars.iterator().forEachRemaining(car -> changer.changeCarWithSmallDiameter(car));
+    }
+
+    public void changeWheels(float minDiameter, float maxDiameter, TireType tireType) {
+        System.out.println("Changing wheels to " + tireType);
+
+        changer.setMinDiameter(minDiameter);
+        changer.setMaxDiameter(maxDiameter);
+        changer.setTireType(tireType);
+
+        cars.iterator().forEachRemaining(car -> changer.changeWheels(car));
+    }
+
+    public void remove(Color color) {
+        if (cars.removeIf(car -> (car.getColor() == color))) {
+            System.out.println("Cars are removed.");
         }
     }
 
-    void update(String[] params) throws NumberFormatException {
-        String param = params[0];
+    public void remove(float minDiameter, float maxDiameter) {
+        boolean removed = cars.removeIf(car -> (car.getSteeringWheel().getDiameter() >= minDiameter &&
+                car.getSteeringWheel().getDiameter() <= maxDiameter));
 
-        if (WITH.equals(param) || WITHOUT.equals(param)) {
-            changer.makeDoubleWheelsDiameter(WITH.equals(param));
-            return;
+        if (removed) {
+            System.out.println("Cars are removed.");
         }
+    }
 
-        Color color = Color.fromString(param);
+    public void remove(BodyType bodyType, float minDiameter, float maxDiameter) {
+        boolean removed = cars.removeIf(car -> (car.getBodyType() == bodyType && car.getSteeringWheel().getDiameter() >= minDiameter &&
+                car.getSteeringWheel().getDiameter() <= maxDiameter));
 
-        if (color != null) {
-            TireType tireType = TireType.fromString(params[2]);
+        if (removed) {
+            System.out.println("Cars are removed.");
+        }
+    }
 
-            if (tireType != null) {
-                changer.changeTireType(color, Float.parseFloat(params[1]), tireType);
-                return;
+    public List<Integer> getIndexes() {
+        return search.getIndexes();
+    }
+
+    public List<? extends Car> doSearch(String value){
+        try {
+            return search.find(BodyType.fromString(value));
+        } catch (IllegalArgumentException bex) {
+            try {
+            return doSearch(Color.fromString(value));
+            } catch (IllegalArgumentException cex) {
+                throw new IllegalArgumentException(bex.getMessage() + "\nOR " + cex.getMessage(), bex);
             }
-
-            changer.changeSteeringWheel(color, Float.parseFloat(params[2]),
-                    Boolean.parseBoolean(params[1]));
-            return;
-        }
-
-        color = Color.fromString(params[2]);
-        BodyType bodyType = BodyType.fromString(params[3]);
-
-        if (color != null && bodyType != null) {
-            changer.changeCarsWithSmallDiameter(Float.parseFloat(param), params);
-        }
-
-        try {
-            changer.changeWheels(Float.parseFloat(param), Float.parseFloat(params[1]),
-                    TireType.fromString(params[2]));
-        } catch (NumberFormatException e) {
-            throw e;
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Tire type is wong. Use: " +
-                    Arrays.toString(TireType.values()), e);
-        }
-
-        System.out.println("Parameter '" + param + "' isn't allowed. Allowed 'with'/'without', one of colors: "
-                + Arrays.toString(Color.values()));
-    }
-
-    void remove(String[] params) throws IllegalArgumentException {
-
-        switch (params.length) {
-            case 1:
-                Color color = Color.fromString(params[0]);
-
-                if (color == null) {
-                    throw new IllegalArgumentException("Parameter '" + params[0] +
-                            "' isn't allowed. Allowed colors: " + Arrays.toString(Color.values()));
-                }
-
-                remover.remove(color);
-                break;
-
-            case 2:
-                remover.remove(Float.parseFloat(params[0]), Float.parseFloat(params[1]));
-                break;
-
-            case 3:
-                BodyType bodyType = BodyType.fromString(params[0]);
-
-                if (bodyType == null) {
-                    throw new IllegalArgumentException("Parameter '" + params[0] +
-                            "' isn't allowed. Allowed body types: " + Arrays.toString(BodyType.values()));
-                }
-
-                remover.remove(bodyType, Float.parseFloat(params[1]), Float.parseFloat(params[2]));
-                break;
         }
     }
 
-    private void searchByOneParameter(String parameter) throws NumberFormatException {
-        if (parameter == null || "".equals(parameter)) {
-            System.out.println("Wrong parameters count. Expected one parameter.");
-            return;
-        }
+    public List<? extends Car> doSearch(Color color) {
+        search.clearResults();
+        search.setColor(color);
 
-        if ("indexes".equals(parameter)) {
-            System.out.println(search.getIndexes());
-            return;
-        }
+        cars.iterator().forEachRemaining(car -> search.findCarsWithColor(car));
 
-        Color color = Color.fromString(parameter);
-
-        if (color != null) {
-            search.find(color);
-            return;
-        }
-
-        BodyType bodyType = BodyType.fromString(parameter);
-
-        if (bodyType != null) {
-            search.find(bodyType);
-            return;
-        }
-
-        search.find(Float.parseFloat(parameter));
+        return search.getCars();
     }
 
-    private void searchByTwoParameters(String color, String diameter) throws IllegalArgumentException {
-        Color c = Color.fromString(color);
 
-        if (c == null) {
-            throw new IllegalArgumentException("Color '" + color + "' isn't allowed. Allowed colors: "
-                    + Arrays.toString(Color.values()));
-        }
-
-        search.find(Float.parseFloat(diameter), c);
+    public List<? extends Car> doSearch(BodyType bodyType) {
+        return search.find(bodyType);
     }
 
-    private void searchByTreeParameters(String tire, String minDiameter, String maxDiameter) throws IllegalArgumentException {
-        try {
-            search.find(TireType.valueOf(tire.toUpperCase()), Float.parseFloat(minDiameter),
-                    Float.parseFloat(maxDiameter));
-        } catch (NumberFormatException ex) {
-            throw ex;
-        } catch (IllegalArgumentException ex) {
-            throw new IllegalArgumentException("Tire type '" + tire + " is wong. Use: " + Arrays.toString(TireType.values()));
-        }
+    public List<? extends Car> doSearch(Color color, Float diameter) {
+        search.clearResults();
+        search.setColor(color);
+        search.setDiameter(diameter);
+
+        cars.iterator().forEachRemaining(car -> search.findCarWithColorAndDiameter(car));
+
+        return search.getCars();
+    }
+
+    public List<? extends Car> doSearch(TireType tire, Float minDiameter, Float maxDiameter) {
+        return search.find(tire, minDiameter, maxDiameter);
     }
 }

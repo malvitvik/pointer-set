@@ -9,114 +9,130 @@ import java.util.*;
 
 public class Search {
     private List<Integer> indexes = new ArrayList<>();
-    private Set<? extends Car> cars = new HashSet<>();
+    private HashSet<Car> cars = new HashSet<>();
+
+    private List<Car> result = new LinkedList<>();
+
+    private Color color;
+    private float diameter;
+
+    public List<Car> getCars() {
+        return result;
+    }
+
+    public void clearResults() {
+        result = new LinkedList<>();
+    }
+
+    public void setColor(Color color) {
+        this.color = color;
+    }
+
+    public void setDiameter(float diameter) {
+        this.diameter = diameter;
+    }
 
     public List<Integer> getIndexes() {
         return indexes;
     }
 
-    public void setCars(Set<? extends Car> cars) {
+    public void setCars(HashSet<Car> cars) {
         this.cars = cars;
     }
 
-    public void find(Color color) {
+    public void findCarsWithColor(Car car) {
+        if (car.getColor() == color) {
+            result.add(car);
+        }
+    }
+
+    public void findCarWithColorAndDiameter(Car car) {
+        if (car.getWheelsDiameter() == diameter && car.getColor() == color) {
+            result.add(car);
+        }
+    }
+
+    public List<? extends Car> find(Color color) {
         Iterator<? extends Car> carIterator = cars.iterator();
 
-        System.out.print("[");
+        List<Car> cars = new LinkedList<>();
 
         while (carIterator.hasNext()) {
             Car car = carIterator.next();
 
             if (car.getColor() == color) {
-                System.out.print(car);
-
-                if (carIterator.hasNext()) {
-                    System.out.print(", ");
-                }
+                cars.add(car);
             }
         }
 
-        System.out.println("]");
+        return cars;
     }
 
-    public void find(BodyType bodyType) {
+    public List<? extends Car> find(BodyType bodyType) {
         Iterator<? extends Car> carIterator = cars.iterator();
         int index = -1;
 
-        System.out.print("[");
+        List<Car> cars = new LinkedList<>();
 
         while (carIterator.hasNext()) {
             Car car = carIterator.next();
             index++;
 
             if (car.getBodyType() == bodyType) {
-                System.out.print(car);
+                cars.add(car);
 
                 indexes.add(index);
-
-                if (carIterator.hasNext()) {
-                    System.out.print(", ");
-                }
             }
         }
 
-        System.out.println("]");
+        return cars;
     }
 
-    public void find(float diameter) {
+    public List<? extends Car> find(float diameter) {
         Iterator<? extends Car> carIterator = cars.iterator();
 
-        System.out.print("[");
+        List<Car> list = new LinkedList<>();
 
         while (carIterator.hasNext()) {
             Car car = carIterator.next();
 
             if (car.getWheelsDiameter() == diameter) {
-                System.out.print(car);
-
-                if (carIterator.hasNext()) {
-                    System.out.print(", ");
-                }
+                list.add(car);
             }
         }
 
-        System.out.println("]");
+        return list;
     }
 
-    public void find(float diameter, Color color) {
+    public List<? extends Car> find(float diameter, Color color) {
         Iterator<? extends Car> carIterator = cars.iterator();
 
-        System.out.print("[");
+        List<Car> cars = new LinkedList<>();
+
         while (carIterator.hasNext()) {
             Car car = carIterator.next();
 
             if (car.getWheelsDiameter() == diameter && car.getColor() == color) {
-                System.out.print(car);
-
-                if (carIterator.hasNext()) {
-                    System.out.print(", ");
-                }
+                cars.add(car);
             }
         }
-        System.out.println("]");
+
+        return cars;
     }
 
-    public void find(TireType type, float minDiameter, float maxDiameter) {
+    public List<? extends Car> find(TireType type, float minDiameter, float maxDiameter) {
         Iterator<? extends Car> carIterator = cars.iterator();
 
-        System.out.print("[");
+        List<Car> cars = new LinkedList<>();
         while (carIterator.hasNext()) {
             Car car = carIterator.next();
 
             if (car.getWheelsDiameter() >= minDiameter && car.getWheelsDiameter() <= maxDiameter
                     && car.getTireType() == type) {
-                System.out.print(car);
-
-                if (carIterator.hasNext()) {
-                    System.out.print(", ");
-                }
+                cars.add(car);
             }
         }
-        System.out.println("]");
+
+        return cars;
     }
 }

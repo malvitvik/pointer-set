@@ -1,18 +1,16 @@
 package pointer.set;
 
+import java.util.Arrays;
+
 public enum Color {
     BLACK, WHITE, RED, GREEN, YELLOW, BLUE, ORANGE, PURPLE;
 
     public static Color fromString(String value) {
-        Color[] colors = values();
-        String valuesUp = value.trim().toUpperCase();
-
-        for (Color c : colors) {
-            if (c.name().equals(valuesUp)) {
-                return c;
-            }
+        try {
+            return valueOf(value.toUpperCase());
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Color " + value + "' isn't allowed. Allowed colors: "
+                    + Arrays.toString(values()));
         }
-
-        return null;
     }
 }
